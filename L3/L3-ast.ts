@@ -179,7 +179,7 @@ export const parseL3SpecialForm = (op: Sexp, params: Sexp[]): Result<CExp> =>
         isNonEmptyList<Sexp>(params) ? parseLitExp(first(params)) :
         makeFailure(`Bad quote exp: ${params}`) :
     op === "class" ?
-        params.length === 2 ? parseClassExp(first(params), second(params)) :
+        isNonEmptyList<Sexp>(params) && params.length === 2 ? parseClassExp(first(params), second(params)) :
         makeFailure(`Bad class: ${params}`) :
     makeFailure("Never");
 

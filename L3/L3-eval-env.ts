@@ -7,7 +7,7 @@ import { isBoolExp, isCExp, isLitExp, isNumExp, isPrimOp, isStrExp, isVarRef,
          Binding, VarDecl, CExp, Exp, IfExp, LetExp, ProcExp, Program,
          parseL3Exp,  DefineExp, ClassExp, isClassExp} from "./L3-ast";
 import { applyEnv, makeEmptyEnv, makeExtEnv, Env } from "./L3-env-env";
-import { isClosure, makeClosureEnv, Closure, Value, Class, makeClassEnv, isClass, isObject, makeObject} from "./L3-value";
+import { isClosure, makeClosureEnv, Closure, Value, Class, makeClassEnv, isClass, isObject, makeObject, isSymbolSExp, Object} from "./L3-value";
 import { applyPrimitive } from "./evalPrimitive";
 import { allT, first, rest, isEmpty, isNonEmptyList } from "../shared/list";
 import { Result, makeOk, makeFailure, bind, mapResult } from "../shared/result";
@@ -71,9 +71,25 @@ const applyClass = (cls : Class, args: Value[]) : Result<Value> => {
     const fieldNames = map((v : VarDecl) => v.var, cls.fields)
     const objEnv = makeExtEnv(fieldNames, args, cls.env)
     return makeOk(makeObject(cls.methods, objEnv))
-
 }
 
+const applyObject = (obj : Object, args : Value[]): Result<Value> => {
+    if (!isNonEmptyList<Value>(args)) {
+        return makeFailure("No method name provided");
+    }
+    const methodName = first(args)
+    const methodArgs = rest(args)
+
+    if(!isSymbolSExp(methodName)){
+        return makeFailure("Method name must be a symbol");
+    }
+    const method = obj.methods.find((m) => m.var.var === methodName.val)
+    if (!method){
+        return makeFailure(`Unrecognized method: ${methodName.val}`);
+    }
+    return bind(applicativeEval(method.val, obj.env), (proc : Value) => applyProcedure(proc, methodArgs))
+
+}
 
 
 // Evaluate a sequence of expressions (in a program)
