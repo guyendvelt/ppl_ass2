@@ -7,4 +7,3 @@ Signature: l2ToPython(l2AST)
 Type: [Parsed | Error] => Result<string>
 */
 export const l2ToPython = (exp: Exp | Program): Result<string>  => 
-    makeFailure("TODO");
