@@ -11,29 +11,29 @@ Purpose: Transform a given L2 AST to a Python program string
 Signature: L2ToPython(exp)
 Type: [Exp | Program] => Result<string>
 */
-export const L2ToPython = (exp: Exp | Program): Result<string> =>
-    isProgram(exp) ? mapv(mapResult(L2ToPythonExp, exp.exps), (exps: string[]) => exps.join("\n")) :
-    L2ToPythonExp(exp);
+export const l2ToPython = (exp: Exp | Program): Result<string> =>
+    isProgram(exp) ? mapv(mapResult(l2ToPythonExp, exp.exps), (exps: string[]) => exps.join("\n")) :
+    l2ToPythonExp(exp);
 
-const L2ToPythonExp = (exp: Exp): Result<string> =>
-    isDefineExp(exp) ? mapv(L2ToPythonCExp(exp.val), (val: string) => `${exp.var.var} = ${val}`) : 
-    L2ToPythonCExp(exp);
+const l2ToPythonExp = (exp: Exp): Result<string> =>
+    isDefineExp(exp) ? mapv(l2ToPythonCExp(exp.val), (val: string) => `${exp.var.var} = ${val}`) : 
+    l2ToPythonCExp(exp);
 
-const L2ToPythonCExp = (exp: CExp): Result<string> => 
+const l2ToPythonCExp = (exp: CExp): Result<string> => 
     isNumExp(exp) ? makeOk(exp.val.toString()) : 
     isBoolExp(exp) ? makeOk(exp.val ? "True" : "False") :
     isStrExp(exp) ? makeOk(`"${exp.val}"`) : 
     isVarRef(exp) ? makeOk(exp.var) :
     isPrimOp(exp) ? makeOk(convertPrimOp(exp.op)) :
-    isIfExp(exp) ? bind(L2ToPythonCExp(exp.test), (test: string) =>
-                    bind(L2ToPythonCExp(exp.then), (then: string) =>
-                    mapv(L2ToPythonCExp(exp.alt), (alt: string) =>
+    isIfExp(exp) ? bind(l2ToPythonCExp(exp.test), (test: string) =>
+                    bind(l2ToPythonCExp(exp.then), (then: string) =>
+                    mapv(l2ToPythonCExp(exp.alt), (alt: string) =>
                     `(${then} if ${test} else ${alt})`
                 )
             )
         ) :
-    isProcExp(exp) ? mapv(L2ToPythonCExp(exp.body[0]), (bodyStr: string) =>
-            `(lambda ${exp.args.map(arg => arg.var).join(", ")}: ${bodyStr})`
+    isProcExp(exp) ? mapv(l2ToPythonCExp(exp.body[0]), (bodyStr: string) =>
+            `(lambda ${exp.args.map(arg => arg.var).join(",")} : ${bodyStr})`
         ) :
     isAppExp(exp) ? appExpToPython(exp) :
               makeFailure(`Unknown L2 expression type: ${exp}`)
@@ -57,17 +57,17 @@ const appExpToPython = (exp : AppExp) : Result<string> => {
             const op = exp.rator;
             if(isPrimOp(op) && isBinaryOrLogicalOp(op.op)){
                 if(op.op === "not"){
-                    return mapv(L2ToPython(exp.rands[0]), (rand : string) => `(not ${rand})`)
+                    return mapv(l2ToPython(exp.rands[0]), (rand : string) => `(not ${rand})`)
                 }
-                 return bind(L2ToPythonCExp(exp.rands[0]), (left: string) =>
-                mapv(L2ToPythonCExp(exp.rands[1]), (right: string) =>
-                    `(${left} ${L2ToPython(op)} ${right})`
+                 return bind(l2ToPythonCExp(exp.rator), (rator : string) =>
+                    mapv(mapResult(l2ToPythonCExp, exp.rands), (rands : string[]) =>
+                    `(${rands.join(` ${rator} `)})`
+                    )
                 )
-            );
             }
-            return bind(L2ToPythonCExp(exp.rator), (rator : string) => 
-            mapv(mapResult(L2ToPythonCExp, exp.rands), (rands : string[]) =>
-            `${rator}(${rands.join(", ")})`
+            return bind(l2ToPythonCExp(exp.rator), (rator : string) => 
+            mapv(mapResult(l2ToPythonCExp, exp.rands), (rands : string[]) =>
+            `${rator}(${rands.join(",")})`
             )
             )
 

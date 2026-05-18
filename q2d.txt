@@ -55,7 +55,7 @@ L3applicativeEval function calls:
 ------------->
 3.14
 lambda (x) (* x x)
-(lambda (x y radius)
+lambda (x y radius)
         (lambda (msg)
             (if (eq? msg 'area)
                 (* (square radius) pi)
@@ -63,7 +63,7 @@ lambda (x) (* x x)
                     (* 2 pi radius))
                     'error
         )
-    )
+    
 (circle 0 0 3)
 0 
 0 
@@ -75,9 +75,34 @@ lambda (x) (* x x)
                     (* 2 pi 3))
                     'error
         )
+        
+//after the row: (c 'area)
+(c 'area)
+c
+area
+(lambda ('area)
+            (if (eq? 'area 'area)
+                (* (square 3) pi)
+                (if (eq? 'area 'perimeter))
+                    (* 2 pi 3))
+                    'error
+        )
+(eq? 'area 'area)
+eq?
+'area
+'area
+(* (square 3) pi)
+*
+(square 3)
+square 
+3
+(* 3 3)
+* 
+3
+3
+pi
 
 
------------>
 
 
 
